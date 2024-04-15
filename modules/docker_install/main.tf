@@ -24,15 +24,17 @@ resource "null_resource" "docker_install" {
   }
   provisioner "file" {
     source="startup-options.conf"
+    
     destination="/tmp/startup-options.conf"
   }
+
   provisioner "remote-exec" {
     inline= [
     "sudo mkdir -p /etc/systemd/system/docker.service.d",
     " sudo cp /tmp/startup-options.conf /etc/systemd/system/docker.service.d/startup-options.conf",
     " sudo systemctl daemon-reload",
     " sudo systemctl restart docker",
-    " sudo usermod -aG docker adminuser"
+    " sudo usermod -aG docker ${var.username}",
 ]
 }
 }

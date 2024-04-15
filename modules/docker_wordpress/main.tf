@@ -42,10 +42,29 @@ resource "docker_network" "wordpress" {
   name = "wordpress_net"
 }
 
+data "docker_registry_image" "wordpress" {
+  name = "wordpress:latest"
+}
+data "docker_registry_image" "mysql" {
+  name = "mysql:latest"
+}
+
+resource "docker_image" "wordpress_img" {
+  name = data.docker_registry_image.wordpress.name
+  pull_triggers = [ data.docker_registry_image.wordpress.sha256_digest ]
+  
+}
+
+resource "docker_image" "mysql_img" {
+  name = data.docker_registry_image.mysql.name
+  pull_triggers = [ data.docker_registry_image.mysql.sha256_digest ]
+}
+
 
 resource "docker_container" "mysql_container" {
   name  = "mysql_container"
-  image = "mysql:latest"
+  network_mode = "wordpress_net"
+  image = docker_image.mysql_img.image_id
   env = [ "MYSQL_ROOT_PASSWORD=root",
           "MYSQL_DATABASE=wordpress",
           "MYSQL_USER=wordpress",
@@ -58,15 +77,16 @@ resource "docker_container" "mysql_container" {
     name = docker_network.wordpress.name
   }
   volumes {
-    volume_name    = docker_volume.db_data.name
+    host_path = var.path
     container_path = "/var/lib/mysql"
+    volume_name = "db_data"
 
   }
 }
 
   resource "docker_container" "wordpress_container" {
   name  = "wordpress_container"
-  image = "wordpress:latest"
+  image = docker_image.wordpress_img.image_id
   env = [ "WORDPRESS_DB_HOST=mysql_container:3306",
           "WORDPRESS_DB_PASSWORD=wordpress"
 
