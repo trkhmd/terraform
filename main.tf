@@ -30,6 +30,13 @@ module "docker_wordpress" {
   wp_port = var.wp_port
 }
 
+module "kubernetes" {
+  source = "./modules/kubernetes"
+  host = var.host
+  user = var.username
+  ssh_key = var.ssh_key
+}
+
 output "docker_ip_db" {
   value = module.docker_wordpress.docker_db_ip
 }

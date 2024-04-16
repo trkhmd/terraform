@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "docker" {
-  host = "tcp://${var.host}:2375"
+  host = "ssh://${var.ssh_user}@${var.host}:22"
 }
 
 resource "docker_image" "nginx" {
@@ -46,11 +46,12 @@ resource "null_resource" "ssh_target" {
   }
 }
 resource "docker_container" "nginx_container" {
-  name = "nginx_container"
+  name = "nginx_container${count.index}"
+  count = 2
   image = docker_image.nginx.image_id
   ports {
    internal = 80
-   external = 80
+   external = 8080 + count.index
 }
 networks_advanced{
 name = docker_network.private_network.name

@@ -9,23 +9,23 @@ terraform {
 
 
 provider "docker" {
-  host = "tcp://${var.host}:2375"
+  host = "ssh://${var.ssh_user}@${var.host}:22"
 }
 
-resource "null_resource" "ssh_target" {
+/* resource "null_resource" "ssh_target" {
   connection {
     type        = "ssh"
     host        = var.host
     user        = var.ssh_user
     private_key = file(var.ssh_key)
   }
-  provisioner "remote-exec" {
+   provisioner "remote-exec" {
     inline = ["sudo mkdir -p ${var.path}",
       "sudo chmod 777 ${var.path}",
       "sleep 5s"
     ]
   }
-}
+}  */
 
 resource "docker_volume" "db_data" {
   name   = "db_data"
@@ -35,7 +35,7 @@ resource "docker_volume" "db_data" {
     type   = "none"
     device = var.path
   }
-  depends_on = [null_resource.ssh_target]
+  # depends_on = [null_resource.ssh_target]
 }
 
 resource "docker_network" "wordpress" {
@@ -98,5 +98,16 @@ resource "docker_container" "mysql_container" {
   networks_advanced {
     name = docker_network.wordpress.name
   }
-  
+/*   provisioner "local-exec" {
+    command = "echo '${timestamp()} | ${var.ssh_user}@${var.host} > init ' >> traces.log"
+    
+  }
+
+
+  provisioner "local-exec" {
+    command = "echo '${timestamp()} | ${var.ssh_user}@${var.host} > destroy ' >> traces.log"
+    when = destroy
+  } */
 }
+
+

@@ -9,6 +9,9 @@ terraform {
 
 
 resource "null_resource" "docker_install" {
+    triggers =  {
+        always_run = "${timestamp()}"
+    }
     connection {
         type        = "ssh"
         host        = var.host
